@@ -1,0 +1,79 @@
+
+plugins {
+    id 'groovy'
+    id 'application'
+    id 'org.springframework.boot' version '3.2.5'
+	id 'io.spring.dependency-management' version '1.1.4'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+    jimmys-place
+    flatDir {
+        dirs 'lib'
+    }
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+}
+
+dependencies {
+    implementation 'org.codehaus.groovy:groovy:3.+'
+
+    // Groovy module dependency
+    implementation 'org.codehaus.groovy:groovy-json:3.+'
+
+    // Strictly exact version of Maven dependency
+    implementation 'com.codevineyard:hello-world:1.0.1!!'
+
+    implementation 'com.exmple:hello-world:latest'
+
+    badCfgType 'io.jimmyray:hello'
+
+    // Dependency from local jar
+    implementation ':simple-jar'
+
+    runtimeOnly files('libs/a.jar', 'libs/b.jar')
+    
+    runtimeOnly fileTree('libs') { include '*.jar' }
+}
+
+application {
+    mainClass = 'someapp.Main'
+    badKey = 'something.Bad'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+    anotherTestTask()
+    this = "that"
+}
+
+tasks.generateJava {
+	packageName = "com.example.listings.generated"
+    key = value
+    item1
+    item2
+}
+
+tasks.register('docFilesJar', Jar) {
+    group = 'documentation'
+    description = 'Generate documentation'
+    archiveVersion = null
+    archiveFileName = 'doc-files.jar'
+    from 'src/main/template'
+}
+
+// def myTree = fileTree("src")
+// myTree.include "**/*.java"
+// myTree.builtBy "someTask"
+
+// task copy(type: Copy) {
+//    from myTree
+// }

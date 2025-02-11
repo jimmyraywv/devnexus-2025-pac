@@ -1,0 +1,36 @@
+{
+    "DEBUG": false,
+    "tokens": [
+        {
+            "918C0C92-ADA0-4107-ADDA-5783CD7B62DB": {
+                "roles": [
+                    "admin"
+                ]
+            }
+        },
+        {
+            "4C3D5313-8982-4ACD-9D0A-9D5802812480": {
+                "roles": [
+                    "user"
+                ]
+            }
+        }
+    ],
+    "permissions": {
+        "admin": {
+            "path": [
+                "*"
+            ]
+        },
+        "user": {
+            "path": [
+                "v1",
+                "data",
+                "grc",
+                "java",
+                "validation",
+                "deny"
+            ]
+        }
+    }
+}

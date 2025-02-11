@@ -1,0 +1,33 @@
+{
+    "input": {
+        "kind": "AdmissionReview",
+        "request": {
+            "operation": "CREATE",
+            "kind": {
+                "kind": "Pod",
+                "version": "v1"
+            },
+            "object": {
+                "metadata": {
+                    "name": "testapp"
+                },
+                "spec": {
+                    "containers": [
+                        {
+                            "image": "example.com/nginx",
+                            "name": "nginx-frontend"
+                        },
+                        {
+                            "image": "example.com/mysql",
+                            "name": "mysql-backend"
+                        },
+                        {
+                            "image": "artifactory-mirror-example.com/graphql",
+                            "name": "gql"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,5 @@
+curl -v -X POST "http://localhost:8181/v1/data/grc/image/validation/deny?metrics"
+   --http1.1
+   --data-binary @../k8s-admission/review-v1.yaml
+   -H 'Content-Type: application/x-yaml'
+   -H 'Accept: application/json'

@@ -1,0 +1,2 @@
+curl -X POST "http://localhost:8181/v0/data/grc/image/validation/deny"
+    -d @../k8s-admission/review-v0.json

@@ -1,0 +1,7 @@
+package grc.bad
+
+import rego.v1
+
+...file to test opa check command...
+
+
