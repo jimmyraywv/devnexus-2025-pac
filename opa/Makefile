@@ -1,7 +1,5 @@
 .DEFAULT_GOAL := help
 
-# include scripts/colors.sh
-
 ANTLR_CMD:=java -jar ~/.m2/repository/org/antlr/antlr4/4.13.2/antlr4-4.13.2-complete.jar
 ANTLR_CSV_GRAMMAR:=../grammars/csv/CSV.g4
 ANTLR_CSV_PACKAGE:=compliance.parser.antlr.csv.gen
@@ -14,7 +12,7 @@ ANTLR_GRAPHQL_PACKAGE:=compliance.parser.antlr.graphql.gen
 ANTLR_GRAPHQL_TARGET:=../java/parsing-java/src/main/java/compliance/parser/antlr/graphql/gen
 CSV_JSON_SCHEMA_TARGET:=../java/io/schemas/csv-schema.json
 CSV_JSON_TARGET:=../java/io/parsed-csv.json
-CSV_SOURCE:=../java/io/epss-short.csv
+CSV_SOURCE?=<TBD>
 GIT_WF_SOURCE:=git-workflows/ci-build.yaml
 GRADLE_JSON_SCHEMA_TARGET:=../java/io/schemas/gradle-schema.json
 GRADLE_JSON_TARGET:=../java/io/parsed-gradle.json
@@ -35,7 +33,8 @@ OPA_GRADLE_POLICY_SOURCE:=bundle/gradle-validation.rego
 OPA_GRADLE_POLICY:=grc/gradle/validation/deny
 OPA_GRAPHQL_POLICY:=grc/graphql/validation/deny
 OPA_HOST:=localhost
-OPA_JAVA_POLICY:=grc/java/validation/deny
+OPA_JAVA_POLICY_DENY:=grc/java/validation/deny
+OPA_JAVA_POLICY_WARN:=grc/java/validation/warn
 OPA_JAVA_POLICY_SOURCE:=bundle/java-validation.rego
 OPA_K8S_DEPLOYMENT_POLICY:=grc/k8s/deployment/validation/deny
 OPA_K8S_IMAGE_POLICY:=grc/image/validation/deny
@@ -52,7 +51,7 @@ OPA_V1_POLICIES:=v1/policies
 OPA_WASM_BUNDLE?=wasm/bundle.tar.gz
 OPA_WASM_POLICY?=wasm/policy.wasm
 SBOM_JSON_TARGET:=../java/io/sbom-syft.json
-SYFT_IMAGE_SOURCE:=<TBD> # Requires Docker running, based on k8s 1.31 kube-proxy container image
+SYFT_IMAGE_SOURCE?=<TBD> # Requires Docker running, based on k8s 1.31 kube-proxy container image
 SYFT_JAR_SOURCE:=~/.m2/repository/compliance/parser/1.0-SNAPSHOT/parser-1.0-SNAPSHOT-shaded.jar
 TIMESTAMP_MASK:='+%Y-%m-%d %H:%M:%S'
 
@@ -88,13 +87,12 @@ help:	## Display this help
 
 .PHONY: meta
 meta:	## Generate metadata, mostly used by other targets
-# @echo "$(BRed)META$(Color_Off)"
 	$(info    [METADATA])
 	$(info    timestamp: [$(TIMESTAMP)])
 	$(info    git commit: [$(GIT_COMMIT)])
 	$(info    git URL: [$(GIT_URL)])
 	$(info    Version: [$(VERSION)])
-	-@echo
+# -@echo
 #	$(info	)
 
 ##################################
@@ -130,6 +128,18 @@ post-git-wf-yaml:	## Post Git WF YAML to OPA server
 	-H 'Accept: application/json' \
     --data-binary @- \
 	| jq .
+
+.PHONY:	parse-git-wf-ct
+parse-git-wf-ct:	## Parse Git WF YAML with conftest
+	conftest parse git-workflows/ci-build.yaml | jq .
+
+.PHONY:	parse-git-wf-yq
+parse-git-wf-yq:	## Parse Git WF YAML with yq
+	cat git-workflows/ci-build.yaml|yq e -o json|jq .
+
+.PHONY:	parse-countries
+parse-countries:	## Parse countries to illustrate the Norway problem
+	conftest parse countries/countries.yaml | jq .
 
 ##################################
 # Syft/Grype with OPA exec
@@ -167,7 +177,7 @@ start-server-auth:	## Start OPA server with token authz settings
 
 .PHONY:	stop-server
 stop-server:	## Stop OPA sever from other terminal sessions
-	@./scripts/kill-server.sh	
+	@./scripts/kill-server.sh > /dev/null 2>&1
 
 .PHONY:	query-server-data
 query-server-data:	## Query OPA server data
@@ -219,11 +229,11 @@ opa-exec-image:	## Call `opa exec` for image validation
 .PHONY:	opa-exec-java
 opa-exec-java:	## Call `opa exec` for Java class validation
 	java -jar $(JAVA_PARSER_JAR) -f $(JAVA_SOURCE) -t java | \
-	opa exec -I --decision $(OPA_JAVA_POLICY) -b bundle | jq .
+	opa exec -I --decision $(OPA_JAVA_POLICY_DENY) -b bundle | jq .
 
 .PHONY:	opa-exec-java-static
 opa-exec-java-static:	## Call `opa exec` for Java class validation
-	opa exec $(JAVA_JSON_TARGET) --decision $(OPA_JAVA_POLICY) -b bundle | jq .
+	opa exec $(JAVA_JSON_TARGET) --decision $(OPA_JAVA_POLICY_DENY) -b bundle | jq .
 	
 .PHONY:	opa-exec-gradle-static
 opa-exec-gradle-static:	## Call `opa exec` for Gradle validation
@@ -301,15 +311,33 @@ ct-parse-maven-pom:	## Parse Maven POM XML to JSON
 ct-git-wf-static:	## Git validation on static file
 	conftest test -p bundle/git-wf-validation.rego $(GIT_WF_SOURCE) --show-builtin-errors
 
+.PHONY: ct-iac-tf-vars
+ct-iac-tf-vars:
+	conftest test -p conftest/tf-vars.rego conftest/terraform.tfvars \
+	-n examples.ch11.terraform -o github
+
+.PHONY: ct-iac-tf-plan
+ct-iac-tf-plan:
+	conftest test -p conftest/tfplan.rego conftest/long-tfplan.json \
+	-n examples.ch11.terraform -o github
+
 ##################################
 # OPA Java SDK
 ##################################
 ##@ OPA Java SDK Ops
 
 .PHONY: java-opa-sdk-validation
-java-opa-sdk-validation:	## Use OPA server and OPA Java SDK to validate Java class parsed into JSON
+java-opa-sdk-validation:	java-opa-sdk-validation-deny	java-opa-sdk-validation-warn	## Use OPA server and OPA Java SDK to validate Java class parsed into JSON, deny and warn modes
+	
+.PHONY: java-opa-sdk-validation-deny
+java-opa-sdk-validation-deny:	## Use OPA server and OPA Java SDK to validate Java class parsed into JSON
 	@java -jar $(JAVA_PARSER_JAR) \
-    -f $(JAVA_SOURCE) -p $(OPA_JAVA_POLICY) -t java | jq .
+    -f $(JAVA_SOURCE) -p $(OPA_JAVA_POLICY_DENY) -t java | jq .
+
+.PHONY: java-opa-sdk-validation-warn
+java-opa-sdk-validation-warn:	## Use OPA server and OPA Java SDK to validate Java class parsed into JSON, warn mode
+	@java -jar $(JAVA_PARSER_JAR) \
+    -f $(JAVA_SOURCE) -p $(OPA_JAVA_POLICY_WARN) -t java | jq .
 
 .PHONY: java-opa-sdk-validation-wasm
 java-opa-sdk-validation-wasm:	## Use OPA wasm policy and OPA Java SDK to validate Java class parsed into JSON
@@ -334,7 +362,7 @@ parse-java-schema:	## Parse gradle, add schema
 post-java:	## cURL post JSON (parsed from Java file) to OPA server v0 data API, without "input" object
 	@java -jar $(JAVA_PARSER_JAR) \
     -f $(JAVA_SOURCE) -t Java | jq . \
-	| curl -s $(OPA_URL)/$(OPA_V0_DATA)/$(OPA_JAVA_POLICY) \
+	| curl -s $(OPA_URL)/$(OPA_V0_DATA)/$(OPA_JAVA_POLICY_DENY) \
 	--data-binary @- | jq .
 
 .PHONY:	parse-gradle
@@ -409,6 +437,18 @@ count-loc:	## Count lines of Java code
 .PHONY:	opa-build-wasm
 opa-build-wasm:	## OPA build wasm module
 	rm -rf wasm && mkdir wasm && \
-	opa build -t wasm -e $(OPA_JAVA_POLICY) $(OPA_JAVA_POLICY_SOURCE) -o $(OPA_WASM_BUNDLE) \
+	opa build -t wasm -e $(OPA_JAVA_POLICY_DENY) $(OPA_JAVA_POLICY_SOURCE) -o $(OPA_WASM_BUNDLE) \
 	&& tar -xzvf $(OPA_WASM_BUNDLE) -C wasm
 
+##################################
+# Kubernetes
+##################################
+##@ Kubernetes
+
+.PHONY:	mk-up
+mk-up:	## Start minikube
+	minikube start -p DEMO
+
+.PHONY:	mk-down
+mk-down:	## Stop minikube
+	minikube delete -p DEMO

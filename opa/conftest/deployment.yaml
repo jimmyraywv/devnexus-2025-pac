@@ -167,7 +167,7 @@ spec:
         image: k8s.gcr.io/read-only-container
         imagePullPolicy: Always
         securityContext:  
-          allowPrivilegeEscalation: false  
+          allowPrivilegeEscalation: true  
           runAsUser: 0  
           readOnlyRootFilesystem: true
           runAsNonRoot: true
@@ -232,7 +232,75 @@ spec:
           - mountPath: /tmp
             name: tmp
       - name: test-no-resource
-        image: k8s.gcr.io/read-only-container
+        image: read-only-container:v1.0.0
+        imagePullPolicy: Always
+        securityContext:  
+          allowPrivilegeEscalation: false  
+          runAsUser: 1000  
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          capabilities:
+            drop: ["ALL"]  
+          seccompProfile:
+            type: "RuntimeDefault"
+        ports:
+        - containerPort: 8081
+        # resources:  
+        #   limits:  
+        #     cpu: 200m  
+        #     memory: 20Mi  
+        #   requests:  
+        #     cpu: 100m  
+        #     memory: 10Mi  
+        readinessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+      - name: test-no-resource-limits
+        image: read-only-container:v1.0.0
+        imagePullPolicy: Always
+        securityContext:  
+          allowPrivilegeEscalation: false  
+          runAsUser: 1000  
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          capabilities:
+            drop: ["ALL"]  
+          seccompProfile:
+            type: "RuntimeDefault"
+        ports:
+        - containerPort: 8081
+        resources:  
+        #   limits:  
+        #     cpu: 200m  
+        #     memory: 20Mi  
+          requests:  
+            cpu: 100m  
+            memory: 10Mi  
+        readinessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+      - name: test-no-resource-limits-cpu
+        image: read-only-container:v1.0.0
         imagePullPolicy: Always
         securityContext:  
           allowPrivilegeEscalation: false  
@@ -247,11 +315,147 @@ spec:
         - containerPort: 8081
         resources:  
           limits:  
-            # cpu: 200m  
+        #     cpu: 200m  
             memory: 20Mi  
           requests:  
             cpu: 100m  
             memory: 10Mi  
+        readinessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+      - name: test-no-resource-limits-memory
+        image: read-only-container:v1.0.0
+        imagePullPolicy: Always
+        securityContext:  
+          allowPrivilegeEscalation: false  
+          runAsUser: 1000  
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          capabilities:
+            drop: ["ALL"]  
+          seccompProfile:
+            type: "RuntimeDefault"
+        ports:
+        - containerPort: 8081
+        resources:  
+          limits:  
+            cpu: 200m  
+        #     memory: 20Mi  
+          requests:  
+            cpu: 100m  
+            memory: 10Mi  
+        readinessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+      - name: test-no-resource-requests
+        image: read-only-container:v1.0.0
+        imagePullPolicy: Always
+        securityContext:  
+          allowPrivilegeEscalation: false  
+          runAsUser: 1000  
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          capabilities:
+            drop: ["ALL"]  
+          seccompProfile:
+            type: "RuntimeDefault"
+        ports:
+        - containerPort: 8081
+        resources:  
+          limits:  
+            cpu: 200m  
+            memory: 20Mi  
+          # requests:  
+          #   cpu: 100m  
+          #   memory: 10Mi  
+        readinessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+      - name: test-no-resource-requests-cpu
+        image: read-only-container:v1.0.0
+        imagePullPolicy: Always
+        securityContext:  
+          allowPrivilegeEscalation: false  
+          runAsUser: 1000  
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          capabilities:
+            drop: ["ALL"]  
+          seccompProfile:
+            type: "RuntimeDefault"
+        ports:
+        - containerPort: 8081
+        resources:  
+          limits:  
+            cpu: 200m  
+            memory: 20Mi  
+          requests:  
+            # cpu: 100m  
+            memory: 10Mi  
+        readinessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        volumeMounts:
+          - mountPath: /tmp
+            name: tmp
+      - name: test-no-resource-requests-memory
+        image: read-only-container:v1.0.0
+        imagePullPolicy: Always
+        securityContext:  
+          allowPrivilegeEscalation: false  
+          runAsUser: 1000  
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          capabilities:
+            drop: ["ALL"]  
+          seccompProfile:
+            type: "RuntimeDefault"
+        ports:
+        - containerPort: 8081
+        resources:  
+          limits:  
+            cpu: 200m  
+            memory: 20Mi  
+          requests:  
+            cpu: 100m  
+            # memory: 10Mi  
         readinessProbe:
           tcpSocket:
             port: 8081

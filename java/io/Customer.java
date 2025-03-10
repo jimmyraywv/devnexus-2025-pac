@@ -4,8 +4,10 @@ import org.jimmyray.mongo.framework.Strings;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import io.jimmyray.thisimportisbad;
-import io.jimmyray.thisimportisworse;
+// import io.jimmyray.thisimportisbad;
+// import io.jimmyray.thisimportisworse;
+// import org.apache.logging.log4j.LogManager;
+// import org.apache.logging.log4j.Logger;
 
 /**
  * Customer model object with MongoDB meta-mapping annotations.
@@ -77,6 +79,70 @@ public class Customer extends BaseMongoModel {
 	public void setTaxRate(float taxRate) {
 		this.taxRate = taxRate;
 	}
+
+	// public String wrongReturn() {
+	// 	return null;
+	// }
+
+	// private String encryptWrong(String in) {
+	// 	// Generate key
+    //     KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
+    //     SecretKey secretKey = keyGenerator.generateKey();
+
+    //     // Create a Cipher instance for DES
+    //     Cipher cipher = Cipher.getInstance("DES");
+
+    //     // Encrypt data
+    //     cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+    //     byte[] plaintext = in.getBytes();
+    //     byte[] ciphertext = cipher.doFinal(plaintext);
+
+    //     return new String(ciphertext);
+	// }
+
+	// private String encryptRight(String in) {
+    //     // Generate AES key
+    //     KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+    //     keyGenerator.init(192);
+    //     SecretKey secretKey = keyGenerator.generateKey();
+
+    //     // Create Cipher instance
+    //     Cipher cipher = Cipher.getInstance("AES");
+
+    //     // Encrypt data
+    //     cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+    //     byte[] plaintext = in.getBytes();
+    //     byte[] ciphertext = cipher.doFinal(plaintext);
+
+	// 	return new String(ciphertext);
+	// }
+
+	// private User getUser(String userName) {
+	// 	Connection connection = null;
+	// 	Statement statement = null;
+	// 	ResultSet resultSet = null;
+	// 	User user = null;
+	
+	// 	try {
+	// 		connection = DriverManager.getConnection(DB, USER, PASSWORD);
+	// 		statement = conn.createStatement();
+	// 		String sql = "SELECT * FROM users WHERE username = '" + username + "'";
+	// 		rs = stmt.executeQuery(sql);
+	
+	// 		if (rs.next()) {
+	// 			user = new User();
+	// 			user.setId(rs.getInt("uid"));
+	// 		}
+	// 	} catch (SQLException e) {
+	// 		e.printStackTrace();
+	// 	}
+	
+	// 	return user;
+	// }
+
+	// public void parseXml() {
+	// 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+	// }
 
 	@Override
 	public String toString() {

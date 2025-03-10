@@ -11,7 +11,7 @@ places_where_secrets_hide := {
 }
 
 # secrets bad
-warn_secrets contains msg if {
+deny_secrets contains msg if {
 	some name
 	value := input[name]
 	contains(lower(name), places_where_secrets_hide[_])
